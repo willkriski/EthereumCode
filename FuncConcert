@@ -7,9 +7,9 @@ contract FuncConcert {
     uint constant price = 1 ether;
     mapping (address => uint ) public purchasers;
     
-    function FuncConcert() public {
+    function FuncConcert(uint t) public {
         owner = msg.sender;
-        tickets = 5;
+        tickets = t;
     }
     
     function () payable {
@@ -26,5 +26,26 @@ contract FuncConcert {
         if (tickets ==0 ) {
             selfdestruct(owner);
         }
+    }
+    function website() returns (string);
+}
+
+interface Refundable {
+    function refund(uint numTickets) returns (bool);
+}
+
+contract AbstractFuncAttack is FuncConcert(10), Refundable {
+    function refund(uint numTickets) returns (bool) {
+        if (purchasers[msg.sender] < numTickets) {
+            return false;
+        }
+        msg.sender.transfer(numTickets * price);
+        purchasers[msg.sender] -= numTickets;
+        tickets += numTickets;
+        return true;
+    }
+    
+    function website() returns (string) {
+        return "abstractfuncattack.com";
     }
 }
